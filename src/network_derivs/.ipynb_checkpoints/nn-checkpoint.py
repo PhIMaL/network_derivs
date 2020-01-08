@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from functools import reduce
 
 # Linear layer
 class Linear(nn.Linear):
@@ -43,5 +44,5 @@ class Tanh(nn.Module):
         return (z, dz)
 
 
-        
+      
         
