@@ -17,10 +17,11 @@ class Linear(nn.Linear):
 def activation_func_derivs(input, dsigma):
     X, dX = input
     
-    df = dX[:, 0, :, :] * dsigma[:, 1:2, :]
-    d2f = dX[:, 0, :, :]**2 * dsigma[:, 2:3, :] + dX[:, 1, :, :] * dsigma[:, 1:2, :]
-    d3f = 3 * dX[:, 0, :, :] * dX[:, 1, :, :] * dsigma[:, 2:3, :] + dX[:, 0, :, :]**3 * dsigma[:, 3:4, :] + dX[:, 2, :, :] * dsigma[:, 1:2, :]        
-    dF = torch.stack((df, d2f, d3f), dim=1)
+    df = []
+    df.append(dX[:, 0, :, :] * dsigma[:, 1:2, :])
+    df.append(dX[:, 0, :, :]**2 * dsigma[:, 2:3, :] + dX[:, 1, :, :] * dsigma[:, 1:2, :])
+    df.append(3 * dX[:, 0, :, :] * dX[:, 1, :, :] * dsigma[:, 2:3, :] + dX[:, 0, :, :]**3 * dsigma[:, 3:4, :] + dX[:, 2, :, :] * dsigma[:, 1:2, :])        
+    dF = torch.stack(df, dim=1)
     
     return (dsigma[:, 0, :], dF)
 
