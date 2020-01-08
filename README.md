@@ -1,6 +1,5 @@
-==============
-network_derivs
-==============
+# Neural Networks with derivatives
+
 
 
 Add a short description here!
