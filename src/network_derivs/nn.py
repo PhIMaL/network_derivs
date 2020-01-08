@@ -14,32 +14,34 @@ class Linear(nn.Linear):
         return (z, dz)
 
 # Activation function 
-def activation_func_derivs(input, dsigma):
-    X, dX = input
+def activation_func_derivs(dsigma, input):
+    layer_func_derivs = [lambda f, g: g[:, 0, :, :] * f[:, 1:2, :],
+                         lambda f, g: g[:, 0, :, :]**2 * f[:, 2:3, :] + g[:, 1, :, :] * f[:, 1:2, :],
+                         lambda f, g: 3 * g[:, 0, :, :] * g[:, 1, :, :] * f[:, 2:3, :] + g[:, 0, :, :]**3 * f[:, 3:4, :] + g[:, 2, :, :] * f[:, 1:2, :]]
     
     df = []
-    df.append(dX[:, 0, :, :] * dsigma[:, 1:2, :])
-    df.append(dX[:, 0, :, :]**2 * dsigma[:, 2:3, :] + dX[:, 1, :, :] * dsigma[:, 1:2, :])
-    df.append(3 * dX[:, 0, :, :] * dX[:, 1, :, :] * dsigma[:, 2:3, :] + dX[:, 0, :, :]**3 * dsigma[:, 3:4, :] + dX[:, 2, :, :] * dsigma[:, 1:2, :])        
-    dF = torch.stack(df, dim=1)
+    for order in range(input[1].shape[1]):
+        df.append(layer_func_derivs[order](dsigma, input[1]))
+    df = torch.stack(df, dim=1)
+    f = dsigma[:, 0, :]
     
-    return (dsigma[:, 0, :], dF)
+    return (f, df)
 
 # Specific activation function implementations
 class Tanh(nn.Module):
     def __init__(self):
         super().__init__()
-        self.activation_func_derivs = [lambda x, ds: torch.tanh(x[0]),
-                                       lambda x, ds: 1 / torch.cosh(x[0])**2,
-                                       lambda x, ds: -2 * ds[0] * ds[1],
-                                       lambda x, ds: ds[2]**2 / ds[1] - 2* ds[1]**2]
+        self.activation_func_derivs = [lambda ds, x: torch.tanh(x),
+                                       lambda ds, x: 1 / torch.cosh(x)**2,
+                                       lambda ds, x: -2 * ds[0] * ds[1],
+                                       lambda ds, x: ds[2]**2 / ds[1] - 2* ds[1]**2]
         
     def forward(self, input):
         dsigma = []
         for order in range(input[1].shape[1]+1):
-            dsigma.append(self.activation_func_derivs[order](input, dsigma))
+            dsigma.append(self.activation_func_derivs[order](dsigma, input[0]))
         dsigma = torch.stack(dsigma, dim=1)
-        z, dz = activation_func_derivs(input, dsigma)
+        z, dz = activation_func_derivs(dsigma, input)
         
         return (z, dz)
 
