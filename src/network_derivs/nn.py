@@ -28,10 +28,10 @@ def activation_func_derivs(input, dsigma):
 class Tanh(nn.Module):
     def __init__(self):
         super().__init__()
-        self.activation_func_derivs = [lambda x, y: torch.tanh(x[0]),
-                                       lambda x, y: 1 / torch.cosh(x[0])**2,
-                                       lambda x, y: -2 * y[0] * y[1],
-                                       lambda x, y: y[2]**2 / y[1] - 2* y[1]**2]
+        self.activation_func_derivs = [lambda x, ds: torch.tanh(x[0]),
+                                       lambda x, ds: 1 / torch.cosh(x[0])**2,
+                                       lambda x, ds: -2 * ds[0] * ds[1],
+                                       lambda x, ds: ds[2]**2 / ds[1] - 2* ds[1]**2]
         
     def forward(self, input):
         dsigma = []
