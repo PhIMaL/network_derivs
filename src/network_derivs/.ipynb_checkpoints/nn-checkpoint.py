@@ -17,12 +17,12 @@ class Linear(nn.Linear):
 def activation_func_derivs(input, dsigma):
     X, dX = input
     
-    df = dX[:, 0, :, :] * dsigma[:, 0:1, :]
-    d2f = dX[:, 0, :, :]**2 * dsigma[:, 1:2, :] + dX[:, 1, :, :] * dsigma[:, 0:1, :]
-    d3f = 3 * dX[:, 0, :, :] * dX[:, 1, :, :] * dsigma[:, 1:2, :] + dX[:, 0, :, :]**3 * dsigma[:, 2:3, :] + dX[:, 2, :, :] * dsigma[:, 0:1, :]        
+    df = dX[:, 0, :, :] * dsigma[:, 1:2, :]
+    d2f = dX[:, 0, :, :]**2 * dsigma[:, 2:3, :] + dX[:, 1, :, :] * dsigma[:, 1:2, :]
+    d3f = 3 * dX[:, 0, :, :] * dX[:, 1, :, :] * dsigma[:, 2:3, :] + dX[:, 0, :, :]**3 * dsigma[:, 3:4, :] + dX[:, 2, :, :] * dsigma[:, 1:2, :]        
     dF = torch.stack((df, d2f, d3f), dim=1)
     
-    return dF
+    return (dsigma[:, 0, :], dF)
 
 # Specific activation function implementations
 class Tanh(nn.Module):
@@ -37,9 +37,8 @@ class Tanh(nn.Module):
         dsigma = []
         for order in range(input[1].shape[1]+1):
             dsigma.append(self.activation_func_derivs[order](input, dsigma))
-        z = dsigma[0]
-        dsigma = torch.stack(dsigma[1:], dim=1)
-        dz = activation_func_derivs(input, dsigma)
+        dsigma = torch.stack(dsigma, dim=1)
+        z, dz = activation_func_derivs(input, dsigma)
         
         return (z, dz)
 
