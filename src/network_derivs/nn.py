@@ -19,10 +19,7 @@ def activation_func_derivs(dsigma, input):
                          lambda f, g: g[:, 0, :, :]**2 * f[:, 2:3, :] + g[:, 1, :, :] * f[:, 1:2, :],
                          lambda f, g: 3 * g[:, 0, :, :] * g[:, 1, :, :] * f[:, 2:3, :] + g[:, 0, :, :]**3 * f[:, 3:4, :] + g[:, 2, :, :] * f[:, 1:2, :]]
     
-    df = []
-    for order in range(input[1].shape[1]):
-        df.append(layer_func_derivs[order](dsigma, input[1]))
-    df = torch.stack(df, dim=1)
+    df = torch.stack([layer_func_derivs[order](dsigma, input[1]) for order in range(input[1].shape[1])], dim=1)
     f = dsigma[:, 0, :]
     
     return (f, df)
