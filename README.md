@@ -4,7 +4,7 @@ Network-derivs allows you to efficiently calculate the derivative of a NN's outp
 
 **Why?** When using simple autodiff to calculate higher order derivatives, you're calculating many things double (or more). For example, when calculating the third order derivative, autodiff recalculates the first and second order deriv. Since backpropping is very expensive, this is a big part of your total computational effort. 
 
-**How?** If we write a single linear and activation layer as ```f(g(x))```, we can write (for example) the second derivative as ```g'^2 * f + g'' * f'```. By passing the derivatives of lower orders to the next order, we can save a lot of unnecessary calculations.
+**How?** If we write a single linear and activation layer as ```f(g(x))```, we can write (for example) the second derivative as ```g'^2 * f + g'' * f'```. By passing the results of lower order derivatives (i.e. f', g') to the next order, we can save a lot of unnecessary calculations.
 
 **What's the speed up?** That depends on the order of your derivs. Assuming every order takes about the same time to calculate (which ofcourse isn't true; higher order derivs are longer calculations), you can expect ~15-25% speedup for second order and 35-45% for third order.  Note that this applies to the time your algorithm spends on these calculations, not your entire algorithm. In my usecase, this is definitely the dominant component so there's a decent speed up.
 
