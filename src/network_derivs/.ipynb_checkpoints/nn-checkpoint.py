@@ -8,18 +8,21 @@ class Linear(nn.Linear):
         super().__init__(in_features, out_features, bias)
         
     def forward(self, input):
-        x, dx = input
-        z = F.linear(x self.weight, self.bias)
-        dz = F.linear(dx, self.weight)
+        X, dX = input
+        z = F.linear(X, self.weight, self.bias)
+        dz = F.linear(dX, self.weight)
         return (z, dz)
 
 # Activation function 
-def activation_func_derivs(input, sigma, dsigma, d2sigma, d3sigma):
-    df = input[1] * dsigma[:, None, :]
-    d2f = input[1]**2 * d2sigma[:, None, :] + input[2] * dsigma[:, None, :]
-    d3f = 3 * input[1] * input[2] * d2sigma[:, None, :] + input[1]**3 * d3sigma[:, None, :] + input[3] * dsigma[:, None, :]        
+def activation_func_derivs(input, dsigma):
+    X, dX = input
     
-    return df, d2f, d3f
+    df = dX[:, 0, :, :] * dsigma[:, 0:1, :]
+    d2f = dX[:, 0, :, :]**2 * dsigma[:, 1:2, :] + dX[:, 1, :, :] * dsigma[:, 0:1, :]
+    d3f = 3 * dX[:, 0, :, :] * dX[:, 1, :, :] * dsigma[:, 1:2, :] + dX[:, 0, :, :]**3 * dsigma[:, 2:3, :] + dX[:, 2, :, :] * dsigma[:, 0:1, :]        
+    dF = torch.stack((df, d2f, d3f), dim=1)
+    
+    return dF
 
 # Specific activation function implementations
 class Tanh(nn.Module):
@@ -31,7 +34,8 @@ class Tanh(nn.Module):
         dsigma = 1 / torch.cosh(input[0])**2
         d2sigma = -2 * sigma * dsigma
         d3sigma = d2sigma**2 / dsigma - 2*dsigma**2
+        dSigma = torch.stack((dsigma, d2sigma, d3sigma), dim=1)
         
-        df, d2f, d3f = activation_func_derivs(input, sigma, dsigma, d2sigma, d3sigma)
+        dF= activation_func_derivs(input, dSigma)
         
-        return [sigma, df, d2f, d3f]
+        return (sigma, dF)
