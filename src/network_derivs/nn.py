@@ -15,7 +15,6 @@ class Linear(nn.Linear):
         return (z, dz)
 
 # Activation function 
-
 class ActivationFunction(nn.Module):
     def __init__(self):
         super().__init__()
@@ -44,6 +43,12 @@ class Tanh(ActivationFunction):
                                        lambda ds, x: -2 * ds[0] * ds[1],
                                        lambda ds, x: ds[2]**2 / ds[1] - 2* ds[1]**2]
 
-
-      
+def create_deriv_data(X, max_order):
+    if max_order == 1:
+        dX = (torch.eye(X.shape[1]) * torch.ones(X.shape[0])[:, None, None])[:, None, :]
+    else: 
+        dX = [torch.eye(X.shape[1]) * torch.ones(X.shape[0])[:, None, None]]
+        dX.extend([torch.zeros_like(dX[0]) for order in range(max_order-1)])
+        dX = torch.stack(dX, dim=1)
         
+    return (X, dX)
